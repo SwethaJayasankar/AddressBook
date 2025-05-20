@@ -1,42 +1,24 @@
 package com.addressbook.mappers;
+
 import com.addressbook.models.Person;
-	import com.addressbook.dtos.PersonDTO;
+import com.addressbook.dtos.PersonDTO;
+import org.springframework.stereotype.Component;
 
-	import java.util.List;
-	import java.util.stream.Collectors;
+import java.util.List;
+import java.util.stream.Collectors;
 
-	public class PersonMapper {
+@Component
+public class PersonMapper {
 
-	    public static Person toEntity(PersonDTO dto) {
-	        Person person = new Person();
-	        person.setId(dto.getId());  
-	        person.setName(dto.getName());
-	        person.setEmail(dto.getEmail());
-	        person.setPhone(dto.getPhone());
-	        person.setAddress(dto.getAddress());
-	        return person;
-	    }
+    public Person toEntity(PersonDTO dto) {
+        return new Person(dto.getId(), dto.getName(), dto.getEmail(), dto.getPhone(), dto.getAddress());
+    }
 
-	    public static PersonDTO toDTO(Person person) {
-	        PersonDTO dto = new PersonDTO();
-	        dto.setId(person.getId());
-	        dto.setName(person.getName());
-	        dto.setEmail(person.getEmail());
-	        dto.setPhone(person.getPhone());
-	        dto.setAddress(person.getAddress());
-	        return dto;
-	    }
+    public PersonDTO toDTO(Person person) {
+        return new PersonDTO(person.getId(), person.getName(), person.getEmail(), person.getPhone(), person.getAddress());
+    }
 
-	    public static List<Person> toEntityList(List<PersonDTO> dtoList) {
-	        return dtoList.stream()
-	                      .map(PersonMapper::toEntity)
-	                      .collect(Collectors.toList());
-	    }
-
-	    public static List<PersonDTO> toDTOList(List<Person> personList) {
-	        return personList.stream()
-	                         .map(PersonMapper::toDTO)
-	                         .collect(Collectors.toList());
-	    }
-	}
-
+    public List<PersonDTO> toDTOList(List<Person> persons) {
+        return persons.stream().map(this::toDTO).collect(Collectors.toList());
+    }
+}

@@ -1,65 +1,53 @@
 package com.addressbook.controller;
 
-import com.addressbook.models.Person;
 import com.addressbook.dtos.PersonDTO;
-import com.addressbook.mappers.PersonMapper;
+import com.addressbook.service.PersonService;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @RestController
 @RequestMapping("/addressbook")
 public class AddressBookController {
+    
+	@Autowired
+    private final PersonService personService;
 
-    private List<Person> personList = new ArrayList<>();
-    private long counter = 1;
+    public AddressBookController(PersonService personService) {
+        this.personService = personService;
+    }
 
     @GetMapping
     public ResponseEntity<List<PersonDTO>> getAllPersons() {
-        List<PersonDTO> dtos = personList.stream()
-                .map(PersonMapper::toDTO)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(personService.getAllPersons());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PersonDTO> getPersonById(@PathVariable long id) {
-        return personList.stream()
-                .filter(p -> p.getId() == id)
-                .findFirst()
-                .map(p -> ResponseEntity.ok(PersonMapper.toDTO(p)))
+        return personService.getPersonById(id)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<PersonDTO> addPerson(@RequestBody PersonDTO personDTO) {
-        Person person = PersonMapper.toEntity(personDTO);
-        person.setId(counter++);  
-        personList.add(person);
-        return ResponseEntity.ok(PersonMapper.toDTO(person));
+        return ResponseEntity.ok(personService.addPerson(personDTO));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PersonDTO> updatePerson(@PathVariable long id, @RequestBody PersonDTO updatedDTO) {
-        for (int i = 0; i < personList.size(); i++) {
-            if (personList.get(i).getId() == id) {
-                Person updatedPerson = PersonMapper.toEntity(updatedDTO);
-                updatedPerson.setId(id);
-                personList.set(i, updatedPerson);
-                return ResponseEntity.ok(PersonMapper.toDTO(updatedPerson));
-            }
-        }
-        return ResponseEntity.notFound().build();
+        return personService.updatePerson(id, updatedDTO)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePerson(@PathVariable long id) {
-        boolean removed = personList.removeIf(p -> p.getId() == id);
-        return removed ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+        return personService.deletePerson(id)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.notFound().build();
     }
 }
-
-
